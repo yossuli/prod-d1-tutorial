@@ -16,7 +16,6 @@ export default createRoute((c) => {
       <Counter />
       <form method="post">
         <input name="title"></input>
-        <input name="body"></input>
         <input type="submit"></input>
       </form>
     </div>,
@@ -25,22 +24,16 @@ export default createRoute((c) => {
 });
 
 const schema = z.object({
-  title: z.string().min(1).max(16),
-  body: z.string().min(1),
+  title: z.string().min(1),
 });
 
 export const POST = createRoute(zValidator("form", schema), async (c) => {
-  const { title, body } = c.req.valid("form");
+  const { title } = c.req.valid("form");
   const res = await c.env.DB.prepare(
-    "INSERT INTO talks (title, body) VALUES (?, ?) RETURNING *"
+    "INSERT INTO todo (title) VALUES (?) RETURNING *"
   )
-    .bind(title, body)
+    .bind(title)
     .run();
   const record = res.meta;
   return c.text(JSON.stringify(res));
-  if (record) {
-    return c.redirect("/talks");
-  } else {
-    return c.text("Failed to create note", 500);
-  }
 });
