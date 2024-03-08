@@ -34,6 +34,5 @@ export const POST = createRoute(zValidator("form", schema), async (c) => {
   )
     .bind(title)
     .run();
-  const record = res.meta;
   return c.text(JSON.stringify(res));
 });
