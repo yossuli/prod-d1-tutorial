@@ -1,10 +1,10 @@
 import { hc } from "hono/client";
 import { css } from "hono/css";
-import { HttpPUT } from "../routes";
+import { AppType } from "../routes";
 import { SelectTodo, todoStatusEnum } from "../../db/schemas";
 import { useState } from "hono/jsx";
 
-const client = hc<HttpPUT>("/");
+const client = hc<AppType>("/");
 
 export default function Todo(props: { todo: SelectTodo }) {
   const [todo, setTodo] = useState(props.todo);
@@ -12,23 +12,57 @@ export default function Todo(props: { todo: SelectTodo }) {
   const [selectedStatus, setSelectedStatus] = useState<
     SelectTodo["status"] | undefined
   >(undefined);
+  const [a, b] = useState<string | undefined>(undefined);
   return (
     <div
       class={css`
         display: flex;
         flex-direction: row;
       `}
-      onClick={() => {
-        setIsSelect(!isSelect);
-        // const res = client.index.$put({ json: { ...todo } });
-        // console.log(res);
-      }}
     >
-      <p>{todo.title}</p>
+      {a === undefined ? (
+        <div
+          onClick={() => {
+            b(todo.title);
+          }}
+        >
+          {todo.title}
+        </div>
+      ) : (
+        <>
+          <input
+            value={a}
+            onChange={(e) => {
+              b((e.target as HTMLInputElement).value);
+            }}
+          ></input>
+          <button
+            onClick={async () => {
+              const res = await client.index.$put({
+                json: { ...todo, title: a },
+              });
+              const json = await res.json();
+              if ("body" in json) {
+                setTodo({ ...todo, title: json.body.title });
+                b(undefined);
+              }
+            }}
+          >
+            save
+          </button>
+          <button
+            onClick={() => {
+              b(undefined);
+            }}
+          >
+            cancel
+          </button>
+        </>
+      )}
       {isSelect ? (
         <>
           {todoStatusEnum.map((v) => (
-            <p
+            <div
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedStatus(selectedStatus !== v ? v : undefined);
@@ -38,29 +72,46 @@ export default function Todo(props: { todo: SelectTodo }) {
               `}
             >
               {v}
-            </p>
+            </div>
           ))}
           {selectedStatus !== undefined && (
-            <p
+            <div
               onClick={async () => {
-                const res = await client.index.$put({
-                  json: { ...todo, status: selectedStatus },
-                });
-                const json = await res.json();
-                if ("body" in json) {
-                  console.log(res);
-                  setTodo({ ...todo, status: json.body.status });
+                const res = await client.index
+                  .$put({
+                    json: { ...todo, status: selectedStatus },
+                  })
+                  .then((v) => v.json());
+                if ("body" in res) {
+                  setTodo({ ...todo, status: res.body.status });
                   setIsSelect(false);
                   setSelectedStatus(undefined);
                 }
               }}
             >
               change
-            </p>
+            </div>
           )}
+          <div
+            onClick={async () => {
+              const res = await client.index
+                .$delete({ json: { ...todo } })
+                .then((v) => v.json());
+              if ("body" in res) {
+              }
+            }}
+          >
+            delete
+          </div>
         </>
       ) : (
-        <p>{todo.status}</p>
+        <div
+          onClick={() => {
+            setIsSelect(!isSelect);
+          }}
+        >
+          {todo.status}
+        </div>
       )}
     </div>
   );

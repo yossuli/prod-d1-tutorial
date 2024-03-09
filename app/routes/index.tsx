@@ -1,12 +1,11 @@
 import { css } from "hono/css";
 import { createRoute } from "honox/factory";
-import Counter from "../islands/counter";
+// import Counter from "../islands/counter";
 import { drizzle } from "drizzle-orm/d1";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { todoStatusEnum, todos } from "../../db/schemas";
 import { Hono } from "hono";
-import { hc } from "hono/client";
 import Todo from "../islands/todo";
 import { eq } from "drizzle-orm";
 
@@ -29,8 +28,6 @@ export const GET = createRoute(async (c) => {
   );
   return c.render(
     <div class={className}>
-      <h1>Hello, {name}!</h1>
-      <Counter />
       <form method="post">
         <input name="title"></input>
         <input type="submit"></input>
@@ -50,34 +47,43 @@ export const POST = createRoute(zValidator("form", schema), async (c) => {
   return c.json(res);
 });
 
-const put = app.put(
-  "/",
-  zValidator(
-    "json",
-    z.object({
-      id: z.number(),
-      title: z.string(),
-      status: z.enum(todoStatusEnum),
-      createdAt: z.coerce.date(),
-      updatedAt: z.coerce.date(),
-    })
-  ),
-  async (c) => {
-    const req = c.req.valid("json");
+const valid = zValidator(
+  "json",
+  z.object({
+    id: z.number(),
+    title: z.string(),
+    status: z.enum(todoStatusEnum),
+  })
+);
 
+const routes = app
+  .put("/", valid, async (c) => {
+    const req = c.req.valid("json");
     const db = drizzle(c.env.DB);
     const res = await db
       .update(todos)
-      .set(req)
+      .set({ ...req, updatedAt: new Date() })
       .where(eq(todos.id, req.id))
       .returning()
-      .then((result) => ({ status: 200, body: result[0] }))
+      .then((v) => ({ status: 200, body: v[0] }))
       .catch(() => ({
         status: 500,
       }));
     return c.json(res);
-  }
-);
-export type HttpPUT = typeof put;
+  })
+  .delete("/", valid, async (c) => {
+    const req = c.req.valid("json");
+    const db = drizzle(c.env.DB);
+    const res = await db
+      .delete(todos)
+      .where(eq(todos.id, req.id))
+      .returning()
+      .then((v) => ({ status: 200, body: v[0] }))
+      .catch(() => ({
+        status: 500,
+      }));
+    return c.json(res);
+  });
+export type AppType = typeof routes;
 
 export default app;
