@@ -22,10 +22,7 @@ const schema = z.object({
 export const GET = createRoute(async (c) => {
   const name = c.req.query("name") ?? "Hono";
   const db = drizzle(c.env.DB);
-  const res = (await db.select().from(todos).all()).toSorted(
-    (todo) =>
-      -(todo.updatedAt?.getDate() ?? todo.createdAt?.getDate() ?? Infinity)
-  );
+  const res = await db.select().from(todos).orderBy(todos.updatedAt).all();
   return c.render(
     <div class={className}>
       <form method="post">
