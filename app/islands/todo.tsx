@@ -13,11 +13,13 @@ export default function Todo(props: { todo: SelectTodo }) {
     SelectTodo["status"] | undefined
   >(undefined);
   const [a, b] = useState<string | undefined>(undefined);
+  console.log(a);
   return (
     <div
       class={css`
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        gap: 1rem;
       `}
     >
       {a === undefined ? (
@@ -26,15 +28,23 @@ export default function Todo(props: { todo: SelectTodo }) {
             b(todo.title);
           }}
         >
-          {todo.title}
+          <b>{todo.title}</b>
         </div>
       ) : (
-        <>
+        <div
+          class={css`
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+          `}
+        >
           <input
             value={a}
             onChange={(e) => {
               b((e.target as HTMLInputElement).value);
             }}
+            class={css`
+              grid-column: 1/3;
+            `}
           ></input>
           <button
             onClick={async () => {
@@ -52,67 +62,77 @@ export default function Todo(props: { todo: SelectTodo }) {
           </button>
           <button
             onClick={() => {
-              b(undefined);
+              setTimeout(() => b(undefined));
             }}
           >
             cancel
           </button>
-        </>
+        </div>
       )}
-      {isSelect ? (
-        <>
-          {todoStatusEnum.map((v) => (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedStatus(selectedStatus !== v ? v : undefined);
-              }}
-              class={css`
-                background-color: ${selectedStatus === v ? "red" : "unset"};
-              `}
-            >
-              {v}
-            </div>
-          ))}
-          {selectedStatus !== undefined && (
+      <div
+        class={css`
+          display: flex;
+          flex-direction: row;
+          & > * {
+            margin: 0 0.2rem;
+          }
+        `}
+      >
+        {isSelect ? (
+          <>
+            {todoStatusEnum.map((v) => (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedStatus(selectedStatus !== v ? v : undefined);
+                }}
+                class={css`
+                  background-color: ${selectedStatus === v ? "red" : "unset"};
+                `}
+              >
+                {v}
+              </div>
+            ))}
+            {selectedStatus !== undefined && (
+              <div
+                onClick={async () => {
+                  const res = await client.index
+                    .$put({
+                      json: { ...todo, status: selectedStatus },
+                    })
+                    .then((v) => v.json());
+                  if ("body" in res) {
+                    setTodo({ ...todo, status: res.body.status });
+                    setIsSelect(false);
+                    setSelectedStatus(undefined);
+                  }
+                }}
+              >
+                change
+              </div>
+            )}
             <div
               onClick={async () => {
                 const res = await client.index
-                  .$put({
-                    json: { ...todo, status: selectedStatus },
-                  })
+                  .$delete({ json: { ...todo } })
                   .then((v) => v.json());
                 if ("body" in res) {
-                  setTodo({ ...todo, status: res.body.status });
-                  setIsSelect(false);
-                  setSelectedStatus(undefined);
                 }
               }}
             >
-              change
+              delete
             </div>
-          )}
+          </>
+        ) : (
           <div
-            onClick={async () => {
-              const res = await client.index
-                .$delete({ json: { ...todo } })
-                .then((v) => v.json());
-              if ("body" in res) {
-              }
+            onClick={() => {
+              setIsSelect(!isSelect);
             }}
           >
-            delete
+            {todo.status}
           </div>
-        </>
-      ) : (
-        <div
-          onClick={() => {
-            setIsSelect(!isSelect);
-          }}
-        >
-          {todo.status}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

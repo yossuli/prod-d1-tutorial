@@ -1,6 +1,4 @@
-import { css } from "hono/css";
 import { createRoute } from "honox/factory";
-// import Counter from "../islands/counter";
 import { drizzle } from "drizzle-orm/d1";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -8,32 +6,29 @@ import { todoStatusEnum, todos } from "../../db/schemas";
 import { Hono } from "hono";
 import Todo from "../islands/todo";
 import { eq } from "drizzle-orm";
+import { styles } from "./index-css";
 
 const app = new Hono();
-
-const className = css`
-  font-family: sans-serif;
-`;
 
 const schema = z.object({
   title: z.string().min(1),
 });
 
 export const GET = createRoute(async (c) => {
-  const name = c.req.query("name") ?? "Hono";
   const db = drizzle(c.env.DB);
   const res = await db.select().from(todos).orderBy(todos.updatedAt).all();
   return c.render(
-    <div class={className}>
-      <form method="post">
+    <div class={styles.body}>
+      <h1>TODOs</h1>
+      <form method="post" class={styles.form}>
         <input name="title"></input>
-        <input type="submit"></input>
+        <input type="submit" value={"create!"}></input>
       </form>
       {res.map((todo) => {
         return <Todo todo={todo} />;
       })}
     </div>,
-    { title: name }
+    { title: "TODOs" }
   );
 });
 
