@@ -6,5 +6,3 @@ const app = createApp();
 showRoutes(app);
 
 export default app;
-
-export type AppType = typeof app;

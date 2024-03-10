@@ -13,7 +13,6 @@ export default function Todo(props: { todo: SelectTodo }) {
     SelectTodo["status"] | undefined
   >(undefined);
   const [a, b] = useState<string | undefined>(undefined);
-  console.log(a);
   return (
     <div
       class={css`
