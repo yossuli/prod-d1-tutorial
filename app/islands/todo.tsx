@@ -3,6 +3,7 @@ import { css } from "hono/css";
 import { AppType } from "../routes";
 import { SelectTodo, todoStatusEnum } from "../../db/schemas";
 import { useState } from "hono/jsx";
+import { styles } from "./todo-css";
 
 const client = hc<AppType>("/");
 
@@ -12,48 +13,35 @@ export default function Todo(props: { todo: SelectTodo }) {
   const [selectedStatus, setSelectedStatus] = useState<
     SelectTodo["status"] | undefined
   >(undefined);
-  const [a, b] = useState<string | undefined>(undefined);
+  const [editedTitle, setEditedTitle] = useState<string | undefined>(undefined);
   return (
-    <div
-      class={css`
-        display: grid;
-        grid-template-columns: repeat(2, auto);
-        gap: 1rem;
-      `}
-    >
-      {a === undefined ? (
+    <div class={styles.base}>
+      {editedTitle === undefined ? (
         <div
           onClick={() => {
-            b(todo.title);
+            setEditedTitle(todo.title);
           }}
         >
           <b>{todo.title}</b>
         </div>
       ) : (
-        <div
-          class={css`
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-          `}
-        >
+        <div class={styles.editTitle}>
           <input
-            value={a}
+            value={editedTitle}
             onChange={(e) => {
-              b((e.target as HTMLInputElement).value);
+              setEditedTitle((e.target as HTMLInputElement).value);
             }}
-            class={css`
-              grid-column: 1/3;
-            `}
+            class={styles.editTitleInput}
           ></input>
           <button
             onClick={async () => {
               const res = await client.index.$put({
-                json: { ...todo, title: a },
+                json: { ...todo, title: editedTitle },
               });
               const json = await res.json();
               if ("body" in json) {
                 setTodo({ ...todo, title: json.body.title });
-                b(undefined);
+                setEditedTitle(undefined);
               }
             }}
           >
@@ -61,22 +49,14 @@ export default function Todo(props: { todo: SelectTodo }) {
           </button>
           <button
             onClick={() => {
-              setTimeout(() => b(undefined));
+              setTimeout(() => setEditedTitle(undefined));
             }}
           >
             cancel
           </button>
         </div>
       )}
-      <div
-        class={css`
-          display: flex;
-          flex-direction: row;
-          & > * {
-            margin: 0 0.2rem;
-          }
-        `}
-      >
+      <div class={styles.todoStatus}>
         {isSelect ? (
           <>
             {todoStatusEnum.map((v) => (
@@ -85,9 +65,7 @@ export default function Todo(props: { todo: SelectTodo }) {
                   e.stopPropagation();
                   setSelectedStatus(selectedStatus !== v ? v : undefined);
                 }}
-                class={css`
-                  background-color: ${selectedStatus === v ? "red" : "unset"};
-                `}
+                class={styles.listedStatus(selectedStatus, v)}
               >
                 {v}
               </div>
