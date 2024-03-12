@@ -18,4 +18,19 @@ export const todos = sqliteTable("todo", {
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
+  createdBy: integer("createdBy"),
+});
+
+export const users = sqliteTable("user", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  accountId: text("accountId").unique().notNull(),
+  password: text("password").unique().notNull(),
+  name: text("name").notNull(),
+  sessionId: text("sessionId").unique().notNull(),
+  lastLoggedInAt: integer("lastLoggedInAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  isLoggedIn: integer("isLoggedIn", { mode: "boolean" })
+    .notNull()
+    .default(true),
 });
