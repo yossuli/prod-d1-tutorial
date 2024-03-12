@@ -14,14 +14,62 @@ export default function Todo(props: { todo: SelectTodo }) {
     SelectTodo["status"] | undefined
   >(undefined);
   const [editedTitle, setEditedTitle] = useState<string | undefined>(undefined);
+  const changeTitleEditMode = () => {
+    setEditedTitle(todo.title);
+  };
+
+  const saveTitle = async (editedTitle: string) => {
+    const res = await client.index.$put({
+      json: { ...todo, title: editedTitle },
+    });
+
+    const json = await res.json();
+    if ("body" in json) {
+      setTodo({ ...todo, title: json.body.title });
+      setEditedTitle(undefined);
+    }
+  };
+
+  const cancelTitleChange = () => {
+    setTimeout(() => setEditedTitle(undefined));
+  };
+
+  const selectStatus = (e: Event, v: SelectTodo["status"] | undefined) => {
+    e.stopPropagation();
+    setSelectedStatus(selectedStatus !== v ? v : undefined);
+  };
+
+  const changeStatus = async (selectedStatus: SelectTodo["status"]) => {
+    console.log(1);
+    const res = await client.index
+      .$put({
+        json: { ...todo, status: selectedStatus },
+      })
+      .then((v) => v.json());
+
+    console.log(res);
+    if ("body" in res) {
+      setTodo({ ...todo, status: res.body.status });
+      setIsSelect(false);
+      setSelectedStatus(undefined);
+    }
+  };
+
+  const deleteTodo = async () => {
+    const res = await client.index
+      .$delete({ json: { ...todo } })
+      .then((v) => v.json());
+    if ("body" in res) {
+    }
+  };
+
+  const changeStatusEditMode = () => {
+    setIsSelect(!isSelect);
+  };
   return (
     <div class={styles.base}>
       {editedTitle === undefined ? (
-        <div
-          onClick={() => {
-            setEditedTitle(todo.title);
-          }}
-        >
+        <div onClick={changeTitleEditMode}>
           <b>{todo.title}</b>
         </div>
       ) : (
@@ -33,27 +81,8 @@ export default function Todo(props: { todo: SelectTodo }) {
             }}
             class={styles.editTitleInput}
           ></input>
-          <button
-            onClick={async () => {
-              const res = await client.index.$put({
-                json: { ...todo, title: editedTitle },
-              });
-              const json = await res.json();
-              if ("body" in json) {
-                setTodo({ ...todo, title: json.body.title });
-                setEditedTitle(undefined);
-              }
-            }}
-          >
-            save
-          </button>
-          <button
-            onClick={() => {
-              setTimeout(() => setEditedTitle(undefined));
-            }}
-          >
-            cancel
-          </button>
+          <button onClick={() => saveTitle(editedTitle)}>save</button>
+          <button onClick={cancelTitleChange}>cancel</button>
         </div>
       )}
       <div class={styles.todoStatus}>
@@ -61,53 +90,19 @@ export default function Todo(props: { todo: SelectTodo }) {
           <>
             {todoStatusEnum.map((v) => (
               <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedStatus(selectedStatus !== v ? v : undefined);
-                }}
+                onClick={(e) => selectStatus(e, v)}
                 class={styles.listedStatus(selectedStatus, v)}
               >
                 {v}
               </div>
             ))}
             {selectedStatus !== undefined && (
-              <div
-                onClick={async () => {
-                  const res = await client.index
-                    .$put({
-                      json: { ...todo, status: selectedStatus },
-                    })
-                    .then((v) => v.json());
-                  if ("body" in res) {
-                    setTodo({ ...todo, status: res.body.status });
-                    setIsSelect(false);
-                    setSelectedStatus(undefined);
-                  }
-                }}
-              >
-                change
-              </div>
+              <div onClick={() => changeStatus(selectedStatus)}>change</div>
             )}
-            <div
-              onClick={async () => {
-                const res = await client.index
-                  .$delete({ json: { ...todo } })
-                  .then((v) => v.json());
-                if ("body" in res) {
-                }
-              }}
-            >
-              delete
-            </div>
+            <div onClick={deleteTodo}>delete</div>
           </>
         ) : (
-          <div
-            onClick={() => {
-              setIsSelect(!isSelect);
-            }}
-          >
-            {todo.status}
-          </div>
+          <div onClick={changeStatusEditMode}>{todo.status}</div>
         )}
       </div>
     </div>
