@@ -96,6 +96,7 @@ const valid = zValidator(
     id: z.number(),
     title: z.string(),
     status: z.enum(todoStatusEnum),
+    createdBy: z.union([z.number(), z.null()]),
   })
 );
 
@@ -105,12 +106,14 @@ const routes = app
     const db = drizzle(c.env.DB);
     const sessionId = getCookie(c, "sessionId");
     const user: Res<SelectUser> | undefined =
-      sessionId === undefined
+      sessionId === undefined || req.createdBy === null
         ? undefined
         : await db
             .select()
             .from(users)
-            .where(eq(users.sessionId, sessionId))
+            .where(
+              and(eq(users.sessionId, sessionId), eq(users.id, req.createdBy))
+            )
             .all()
             .then((v): { status: 200; body: SelectUser } => ({
               status: 200,
@@ -119,7 +122,7 @@ const routes = app
             .catch(() => ({
               status: 500,
             }));
-    if (user?.status !== 200) {
+    if (user?.status === 500) {
       return c.json(user);
     }
     const res = await db
