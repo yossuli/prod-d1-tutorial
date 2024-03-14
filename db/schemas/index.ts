@@ -24,7 +24,7 @@ export const todos = sqliteTable("todo", {
 export const users = sqliteTable("user", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   accountId: text("accountId").unique().notNull(),
-  password: text("password").unique().notNull(),
+  password: text("password").notNull(),
   name: text("name").notNull(),
   sessionId: text("sessionId").unique().notNull(),
   lastLoggedInAt: integer("lastLoggedInAt", { mode: "timestamp" })
