@@ -10,8 +10,11 @@ declare module 'hono' {
     Variables: {}
     Bindings: { DB: D1Database }
   }
-  type ContextRenderer = (
-    content: string | Promise<string>,
-    head?: Head,
-  ) => Response | Promise<Response>
+  interface ContextRenderer {
+    // biome-ignore lint/style/useShorthandFunctionType: <explanation>
+    (
+      content: string | Promise<string>,
+      head?: Head,
+    ): Response | Promise<Response>
+  }
 }
