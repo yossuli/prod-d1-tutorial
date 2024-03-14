@@ -10,10 +10,12 @@ import { and, eq } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { Res } from "./types";
 
-const app = new Hono();
+const CustomString = z
+  .string()
+  .transform((value) => (value === "" ? undefined : value));
 
 const schema = z.object({
-  name: z.string().min(1).max(16).optional(),
+  name: CustomString.optional(),
   accountId: z.string().min(1),
   password: z.string().min(8),
 });
