@@ -15,29 +15,29 @@ import Todo from "../islands/todo";
 import { and, eq, sql } from "drizzle-orm";
 import { styles } from "./index-css";
 import { Res } from "./types";
-import { getCookie } from "hono/cookie";
+import { deleteCookie, getCookie } from "hono/cookie";
 import { css } from "hono/css";
+import { userUseCase } from "../useCase/userUseCase";
 
 const app = new Hono();
 
 export const GET = createRoute(async (c) => {
-  const db = drizzle(c.env.DB);
-  const res = await db.select().from(todos).orderBy(todos.updatedAt).all();
+  const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) };
+  const res = await db.todo.select().from(todos).orderBy(todos.updatedAt).all();
   const sessionId = getCookie(c, "sessionId");
-  const user: InsertUser | undefined =
-    sessionId !== undefined
-      ? await db
-          .select()
-          .from(users)
-          .where(eq(users.sessionId, sessionId))
-          .all()
-          .then((v) => v[0])
-          .catch(() => undefined)
-      : undefined;
+  const user: Res<InsertUser, [401]> | undefined = sessionId
+    ? await db.user
+        .fetchUser(sessionId)
+        .then((v) => (v.status === 500 ? undefined : v))
+    : undefined;
+  if (user?.status === 401) {
+    deleteCookie(c, "sessionId");
+    return c.redirect("/login");
+  }
   return c.render(
     <div class={styles.body}>
       <h1>
-        Hello!<b>{user && user.name}</b>
+        Hello!<b>{user && user.body.name}</b>
       </h1>
       {user || <a href="login">login</a>}
       {user && <a href="logout">logout</a>}
@@ -45,7 +45,7 @@ export const GET = createRoute(async (c) => {
         <input name="title"></input>
         <input
           name="createdBy"
-          value={user?.id}
+          value={user?.body.id}
           class={css`
             display: none;
           `}
@@ -57,7 +57,7 @@ export const GET = createRoute(async (c) => {
         <>
           <h3>private</h3>
           {res
-            .filter((e) => e.createdBy === user?.id)
+            .filter((e) => e.createdBy === user?.body.id)
             .map((todo) => {
               return <Todo todo={todo} />;
             })}
@@ -103,29 +103,20 @@ const valid = zValidator(
 const routes = app
   .put("/", valid, async (c) => {
     const req = c.req.valid("json");
-    const db = drizzle(c.env.DB);
+    const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) };
     const sessionId = getCookie(c, "sessionId");
-    const user: Res<SelectUser> | undefined =
+    const user: Res<SelectUser, [500, 401]> | undefined =
       sessionId === undefined || req.createdBy === null
         ? undefined
-        : await db
-            .select()
-            .from(users)
-            .where(
-              and(eq(users.sessionId, sessionId), eq(users.id, req.createdBy))
-            )
-            .all()
-            .then((v): { status: 200; body: SelectUser } => ({
-              status: 200,
-              body: v[0],
-            }))
-            .catch(() => ({
-              status: 500,
-            }));
+        : await db.user.fetchUser(sessionId);
     if (user?.status === 500) {
       return c.json(user);
     }
-    const res = await db
+    if (user?.status === 401) {
+      deleteCookie(c, "sessionId");
+      return c.redirect("/login");
+    }
+    const res = await db.todo
       .update(todos)
       .set({ ...req, updatedAt: new Date() })
       .where(

@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import { and, eq } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { Res } from "./types";
+import { userUseCase } from "../useCase/userUseCase";
 
 const CustomString = z
   .string()
@@ -50,36 +51,8 @@ export const GET = createRoute((c) => {
 export const POST = createRoute(zValidator("form", schema), async (c) => {
   const user = c.req.valid("form");
   console.log(user);
-  const db = drizzle(c.env.DB);
-  const res: Res<SelectUser> = await (user.name
-    ? db
-        .insert(users)
-        .values({ ...user, name: user.name, sessionId: nanoid() })
-        .returning()
-        .then((v): { status: 200; body: SelectUser } => ({
-          status: 200,
-          body: v[0],
-        }))
-        .catch(() => ({ status: 500 }))
-    : await db
-        .update(users)
-        .set({
-          lastLoggedInAt: new Date(),
-          isLoggedIn: true,
-          sessionId: nanoid(),
-        })
-        .where(
-          and(
-            eq(users.accountId, user.accountId),
-            eq(users.password, user.password)
-          )
-        )
-        .returning()
-        .then((v): { status: 200; body: SelectUser } => ({
-          status: 200,
-          body: v[0],
-        }))
-        .catch(() => ({ status: 500 })));
+  const db = new userUseCase(c);
+  const res: Res<SelectUser> = await db.sessionStart(user);
   if (res.status === 200) {
     setCookie(c, "sessionId", res.body.sessionId);
     return c.redirect("/");
