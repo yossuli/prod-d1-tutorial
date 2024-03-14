@@ -9,18 +9,33 @@
     "migrate:gen": "drizzle-kit generate:sqlite",
     "migrate:dev": "rm -rf .mf || true && mkdir -p ./.mf/d1/DB && touch ./.mf/d1/DB/db.sqlite && drizzle-kit push:sqlite",
     "migrate:prod": "wrangler d1 migrations apply 'prod-d1-tutorial'",
-    "seed:dev": "$npm_execpath run migrate:dev && $npm_execpath db/seed.ts"
+    "//seed:dev": "$npm_execpath run migrate:dev && ts-node db/seed.ts",
+    "type": "tsc -p ./tsconfig.json",
+    "type:staged": "lint-staged  --shell",
+    "lint": "biome lint ./app",
+    "format": "biome format ./app --write",
+    "check": "biome check --apply ./app",
+    "check:only": "biome check --apply"
   },
   "private": true,
   "dependencies": {
     "@hono/zod-validator": "^0.2.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
     "drizzle-orm": "^0.30.1",
+    "eslint": "^8.57.0",
     "hono": "^4.0.9",
     "honox": "^0.1.4",
-    "nanoid": "^5.0.6"
+    "lefthook": "^1.6.6",
+    "lint-staged": "^15.2.2",
+    "nanoid": "^5.0.6",
+    "typescript": "^5.4.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.6.1",
     "@cloudflare/workers-types": "^4.20240208.0",
+    "@hono/eslint-config": "^0.0.4",
     "@hono/vite-cloudflare-pages": "^0.2.4",
     "better-sqlite3": "^9.4.3",
     "drizzle-kit": "^0.20.14",

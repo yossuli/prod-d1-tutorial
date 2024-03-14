@@ -1,4 +1,4 @@
-import { css } from "hono/css";
+import { css } from 'hono/css'
 
 export const styles = {
   body: css`
@@ -11,4 +11,4 @@ export const styles = {
   form: css`
     margin-bottom: 2rem;
   `,
-};
+}

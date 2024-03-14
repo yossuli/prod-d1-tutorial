@@ -1,5 +1,5 @@
-import { css } from "hono/css";
-import { SelectTodo } from "../../db/schemas";
+import { css } from 'hono/css'
+import type { SelectTodo } from '../../db/schemas'
 
 export const styles = {
   base: css`
@@ -22,9 +22,9 @@ export const styles = {
     }
   `,
   listedStatus: (
-    selectedStatus: SelectTodo["status"] | undefined,
-    v: SelectTodo["status"] | undefined
+    selectedStatus: SelectTodo['status'] | undefined,
+    v: SelectTodo['status'] | undefined,
   ) => css`
-    background-color: ${selectedStatus === v ? "red" : "unset"};
+    background-color: ${selectedStatus === v ? 'red' : 'unset'};
   `,
-};
+}

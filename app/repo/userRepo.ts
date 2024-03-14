@@ -1,7 +1,7 @@
-import { and, eq } from "drizzle-orm";
-import { InsertUser, SelectUser, users } from "../../db/schemas";
-import { RepositoryBase } from "./_repoBase";
-import { StringBuffer } from "hono/utils/html";
+import { and, eq } from 'drizzle-orm'
+import type { InsertUser, SelectUser } from '../../db/schemas'
+import { users } from '../../db/schemas'
+import { RepositoryBase } from './_repoBase'
 
 export class UserRepository extends RepositoryBase {
   async createUser(user: InsertUser) {
@@ -16,11 +16,11 @@ export class UserRepository extends RepositoryBase {
       .catch((e): { status: 500; body: string } => ({
         status: 500,
         body: String(e),
-      }));
-    return drizzleUser;
+      }))
+    return drizzleUser
   }
   async updateUser(
-    user: Partial<InsertUser> & Pick<InsertUser, "accountId" | "password">
+    user: Partial<InsertUser> & Pick<InsertUser, 'accountId' | 'password'>,
   ) {
     const drizzleUser = await this.drizzle
       .update(users)
@@ -28,8 +28,8 @@ export class UserRepository extends RepositoryBase {
       .where(
         and(
           eq(users.accountId, user.accountId),
-          eq(users.password, user.password)
-        )
+          eq(users.password, user.password),
+        ),
       )
       .returning()
       .then((v): { status: 200; body: SelectUser } => ({
@@ -39,8 +39,8 @@ export class UserRepository extends RepositoryBase {
       .catch((e): { status: 500; body: string } => ({
         status: 500,
         body: String(e),
-      }));
-    return drizzleUser;
+      }))
+    return drizzleUser
   }
   async getUser(sessionId: string) {
     const drizzleUser = await this.drizzle
@@ -55,7 +55,7 @@ export class UserRepository extends RepositoryBase {
       .catch((e): { status: 500; body: string } => ({
         status: 500,
         body: String(e),
-      }));
-    return drizzleUser;
+      }))
+    return drizzleUser
   }
 }
