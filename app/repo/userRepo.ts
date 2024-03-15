@@ -32,7 +32,7 @@ export class UserRepository extends RepositoryBase {
         ),
       )
       .returning()
-      .then((v): { status: 200; body: SelectUser } => ({
+      .then((v): { status: 200; body: SelectUser | undefined } => ({
         status: 200,
         body: v[0],
       }))
@@ -48,7 +48,7 @@ export class UserRepository extends RepositoryBase {
       .from(users)
       .where(and(eq(users.sessionId, sessionId), eq(users.isLoggedIn, true)))
       .all()
-      .then((v): { status: 200; body: SelectUser } => ({
+      .then((v): { status: 200; body: SelectUser | undefined } => ({
         status: 200,
         body: v[0],
       }))
