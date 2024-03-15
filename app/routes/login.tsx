@@ -39,16 +39,15 @@ export const GET = createRoute(c => {
           width: fit-content;
           margin: auto;
         `}
-      ></input>
+      />
     </form>,
   )
 })
 
 export const POST = createRoute(zValidator('form', schema), async c => {
   const user = c.req.valid('form')
-  console.log(user)
   const db = new userUseCase(c)
-  const res: Res<SelectUser> = await db.sessionStart(user)
+  const res: Res<SelectUser, [400, 500]> = await db.sessionStart(user)
   if (res.status === 200) {
     setCookie(c, 'sessionId', res.body.sessionId)
     return c.redirect('/')
@@ -59,5 +58,6 @@ export const POST = createRoute(zValidator('form', schema), async c => {
       <h1>Error Occurred!</h1>
       <a href='/login'>redirect to login</a>
     </dev>,
+    { title: 'Error Occurred!' },
   )
 })
