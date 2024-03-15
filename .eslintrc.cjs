@@ -18,6 +18,7 @@ module.exports = {
     es6: true,
   },
   rules: {
+    'comma-style': ['error', 'always'],
     complexity: ['error', 5],
     'max-depth': ['error', 2],
     'max-nested-callbacks': ['error', 3],
