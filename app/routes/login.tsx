@@ -3,9 +3,8 @@ import { deleteCookie, setCookie } from 'hono/cookie'
 import { css } from 'hono/css'
 import { createRoute } from 'honox/factory'
 import { z } from 'zod'
-import type { SelectUser } from '../../db/schemas'
+
 import { userUseCase } from '../useCase/userUseCase'
-import type { Res } from './types'
 
 const CustomString = z
   .string()
@@ -47,7 +46,7 @@ export const GET = createRoute(c => {
 export const POST = createRoute(zValidator('form', schema), async c => {
   const user = c.req.valid('form')
   const db = new userUseCase(c)
-  const res: Res<SelectUser, [400, 500]> = await db.sessionStart(user)
+  const res = await db.sessionStart(user)
   if (res.status === 200) {
     setCookie(c, 'sessionId', res.body.sessionId)
     return c.redirect('/')

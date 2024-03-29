@@ -1,9 +1,11 @@
 import { hc } from 'hono/client'
 import { useState } from 'hono/jsx'
-import type { SelectTodo } from '../../db/schemas'
-import { todoStatusEnum } from '../../db/schemas'
-import type { AppType } from '../routes'
+
 import { styles } from './todo-css'
+import { todoStatusEnum } from '../../db/schemas'
+
+import type { SelectTodo } from '../../db/schemas'
+import type { AppType } from '../routes'
 
 const client = hc<AppType>('/')
 

@@ -1,18 +1,20 @@
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
-import type { Context, Env } from 'hono'
 import { Hono } from 'hono'
 import { deleteCookie, getCookie } from 'hono/cookie'
 import { css } from 'hono/css'
 import { createRoute } from 'honox/factory'
 import { z } from 'zod'
-import type { InsertUser, SelectTodo, SelectUser } from '../../db/schemas'
+
+import { styles } from './index-css'
 import { todoStatusEnum, todos } from '../../db/schemas'
 import Todo from '../islands/todo'
 import { userUseCase } from '../useCase/userUseCase'
-import { styles } from './index-css'
+
 import type { Res } from './types'
+import type { InsertUser, SelectTodo, SelectUser } from '../../db/schemas'
+import type { Context, Env } from 'hono'
 
 const app = new Hono()
 
@@ -37,13 +39,13 @@ export const GET = createRoute(async c => {
   const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) }
   const res = await db.todo.select().from(todos).orderBy(todos.updatedAt).all()
   const sessionId = getCookie(c, 'sessionId')
-  const user: Res<InsertUser, [401]> | undefined = await userHandler(
+  const user: Res<InsertUser, [401, 400]> | undefined = await userHandler(
     sessionId,
     db.user,
     c,
   )
 
-  if (user?.status === 401) {
+  if (user?.status === 401 || user?.status === 400) {
     deleteCookie(c, 'sessionId')
     return c.redirect('/login')
   }
@@ -120,12 +122,9 @@ const routes = app
     const req = c.req.valid('json')
     const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) }
     const sessionId = getCookie(c, 'sessionId')
-    const user: Res<SelectUser, [500, 401]> | undefined =
+    const user: Res<SelectUser, [500, 401, 400]> | undefined =
       sessionId !== undefined ? await db.user.fetchUser(sessionId) : undefined
-    if (user?.status === 500) {
-      return c.json(user)
-    }
-    if (user?.status === 401) {
+    if (user !== undefined && user?.status !== 200) {
       deleteCookie(c, 'sessionId')
       return c.json(user)
     }

@@ -1,7 +1,9 @@
 import { and, eq } from 'drizzle-orm'
-import type { InsertUser, SelectUser } from '../../db/schemas'
-import { users } from '../../db/schemas'
+
 import { RepositoryBase } from './_repoBase'
+import { users } from '../../db/schemas'
+
+import type { InsertUser, SelectUser } from '../../db/schemas'
 
 export class UserRepository extends RepositoryBase {
   async createUser(user: InsertUser) {

@@ -2,9 +2,11 @@ import { and, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { deleteCookie, getCookie } from 'hono/cookie'
 import { createRoute } from 'honox/factory'
-import type { SelectUser } from '../../db/schemas'
+
 import { users } from '../../db/schemas'
+
 import type { Res } from './types'
+import type { SelectUser } from '../../db/schemas'
 
 export const GET = createRoute(async c => {
   const sessionId = getCookie(c, 'sessionId')
