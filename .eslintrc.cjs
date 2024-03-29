@@ -5,12 +5,13 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     '@hono/eslint-config',
   ],
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'import', 'unused-imports'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     sourceType: 'module',
     project: './tsconfig.json',
     ecmaFeatures: { jsx: true },
+    extraFileExtensions: ['.json'],
   },
   env: {
     browser: true,
@@ -18,8 +19,42 @@ module.exports = {
     es6: true,
   },
   rules: {
-    'comma-style': ['error', 'always'],
+    'import/order': [
+      'error',
+      {
+        groups: [
+          'builtin', // 組み込みモジュール
+          'external', // npmでインストールした外部ライブラリ
+          'internal', // 自作モジュール
+          ['parent', 'sibling'],
+          'type',
+          'object',
+          'index',
+        ],
+        'newlines-between': 'always', // グループ毎にで改行を入れる
+        pathGroupsExcludedImportTypes: ['builtin'],
+        alphabetize: {
+          order: 'asc', // 昇順にソート
+          caseInsensitive: true, // 小文字大文字を区別する
+        },
+        pathGroups: [
+          // 指定した順番にソートされる
+          {
+            pattern: '@/components/common',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@/components/hooks',
+            group: 'internal',
+            position: 'before',
+          },
+        ],
+      },
+    ],
+    'unused-imports/no-unused-imports': 'error',
     complexity: ['error', 5],
+    quotes: ['off', 'single', { avoidEscape: true }],
     'max-depth': ['error', 2],
     'max-nested-callbacks': ['error', 3],
     'max-lines': [

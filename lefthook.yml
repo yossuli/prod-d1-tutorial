@@ -5,4 +5,4 @@ pre-commit:
       run: npm run type:staged
     lint-and-format:
       glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
-      run: npm run check:only --no-errors-on-unmatched --files-ignore-unknown=true {staged_files} && git update-index --again
+      run: npx eslint {staged_files} && npm run check:only --no-errors-on-unmatched --files-ignore-unknown=true {staged_files} && git update-index --again

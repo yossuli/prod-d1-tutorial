@@ -1,10 +1,13 @@
 {
   "eslint.run": "onSave",
   "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
     "quickfix.biome": "always",
-    "source.organizeImports.biome": "always"
+    "source.organizeImports.biome": "always",
+    "source.addMissingImports": "explicit",
+    "source.fixAll.eslint": "explicit"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.referencesCodeLens.enabled": true,

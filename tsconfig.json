@@ -18,5 +18,13 @@
     "isolatedModules": true,
     "incremental": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "*.js", ".eslintrc.cjs"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "*.js",
+    ".eslintrc.cjs",
+    "biome.json",
+    "package.json",
+    "tsconfig.json"
+  ]
 }
