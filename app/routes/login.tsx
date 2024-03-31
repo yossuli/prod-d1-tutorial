@@ -1,9 +1,9 @@
 import { zValidator } from '@hono/zod-validator'
 import { deleteCookie, setCookie } from 'hono/cookie'
-import { css } from 'hono/css'
 import { createRoute } from 'honox/factory'
 import { z } from 'zod'
 
+import Login from '../islands/Login'
 import { userUseCase } from '../useCase/userUseCase'
 
 const CustomString = z
@@ -17,30 +17,7 @@ const schema = z.object({
 })
 
 export const GET = createRoute(c => {
-  return c.render(
-    <form
-      class={css`
-        display: grid;
-        grid-template-columns: repeat(2, auto);
-      `}
-      method='POST'
-    >
-      <label for='name'>name</label>
-      <input type='text' name='name' />
-      <label for='accountId'>accountId</label>
-      <input type='text' name='accountId' />
-      <label for='password'>password</label>
-      <input type='password' name='password' />
-      <input
-        type='submit'
-        class={css`
-          grid-column: 1/3;
-          width: fit-content;
-          margin: auto;
-        `}
-      />
-    </form>,
-  )
+  return c.render(<Login />)
 })
 
 export const POST = createRoute(zValidator('form', schema), async c => {
