@@ -9,7 +9,7 @@ import { z } from 'zod'
 
 import { styles } from './index-css'
 import { todoStatusEnum, todos } from '../../db/schemas'
-import Todo from '../islands/todo'
+import Todo from '../islands/Todo'
 import { userUseCase } from '../useCase/userUseCase'
 
 import type { Res } from './types'
