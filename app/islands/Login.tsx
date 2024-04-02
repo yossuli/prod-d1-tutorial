@@ -42,13 +42,13 @@ export default function Login() {
         {isRoleSignIn && (
           <>
             <label for='name'>name</label>
-            <input type='text' name='name' />
+            <input type='text' name='name' autocomplete='nickname' />
           </>
         )}
         <label for='accountId'>accountId</label>
-        <input type='text' name='accountId' />
+        <input type='text' name='accountId' autocomplete='username' />
         <label for='password'>password</label>
-        <input type='password' name='password' />
+        <input type='password' name='password' autocomplete='off' />
         <button
           type='submit'
           class={css`
