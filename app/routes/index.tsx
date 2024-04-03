@@ -14,38 +14,33 @@ import { userUseCase } from '../useCase/userUseCase'
 
 import type { Res } from './types'
 import type { InsertUser, SelectTodo, SelectUser } from '../../db/schemas'
-import type { Context, Env } from 'hono'
 
 const app = new Hono()
 
 const userHandler = async (
   sessionId: string | undefined,
   userDB: userUseCase,
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  c: Context<Env, any, {}>,
 ) =>
   sessionId !== undefined
     ? await userDB.fetchUser(sessionId).then(v => {
-        if (v.status === 500) {
-          deleteCookie(c, 'sessionId')
-          return undefined
-        }
         return v
       })
     : undefined
 
 export const GET = createRoute(async c => {
   const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) }
-  const res = await db.todo.select().from(todos).orderBy(todos.updatedAt).all()
+  const allTodos = await db.todo
+    .select()
+    .from(todos)
+    .orderBy(todos.updatedAt)
+    .all()
   const sessionId = getCookie(c, 'sessionId')
-  const user: Res<InsertUser, [401, 400]> | undefined = await userHandler(
+  const user: Res<InsertUser, [401, 400, 500]> | undefined = await userHandler(
     sessionId,
     db.user,
-    c,
   )
 
-  if (user?.status === 401 || user?.status === 400) {
+  if (user !== undefined && user.status !== 200) {
     deleteCookie(c, 'sessionId')
     return c.redirect('/login')
   }
@@ -70,7 +65,7 @@ export const GET = createRoute(async c => {
       {user && (
         <>
           <h3>private</h3>
-          {res
+          {allTodos
             .filter(e => e.createdBy === user?.body.id)
             .map(todo => {
               return <Todo todo={todo} />
@@ -78,7 +73,7 @@ export const GET = createRoute(async c => {
         </>
       )}
       <h3>public</h3>
-      {res
+      {allTodos
         .filter(e => e.createdBy === null)
         .map(todo => {
           return <Todo todo={todo} />
