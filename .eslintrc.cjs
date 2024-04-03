@@ -53,6 +53,7 @@ module.exports = {
       },
     ],
     'unused-imports/no-unused-imports': 'error',
+    '@typescript-eslint/no-explicit-any': 'off',
     complexity: ['error', 5],
     quotes: ['off', 'single', { avoidEscape: true }],
     'max-depth': ['error', 2],
