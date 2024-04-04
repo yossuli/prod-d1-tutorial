@@ -1,10 +1,11 @@
-import { css } from 'hono/css'
-import { useRef, useState } from 'hono/jsx'
+import { useState } from 'hono/jsx'
+
+import { styles } from './Login-css'
 
 const roleHandler = (isSignIn: boolean) => (isSignIn ? 'sign in' : 'log in ')
 export default function Login() {
   const [isRoleSignIn, changeRole] = useState(true)
-  const formRef = useRef<HTMLFormElement | null>(null)
+  // const formRef = useRef<HTMLFormElement | null>(null)
   const submit = (e: Event) => {
     const inputs = Array.from(document.getElementsByTagName('input'))
     console.log(inputs)
@@ -20,54 +21,52 @@ export default function Login() {
     changeRole(c => !c)
     e.preventDefault()
   }
-  console.log(formRef.current?.clientHeight)
+  // console.log(formRef.current?.clientHeight)
   return (
     <>
       <form
-        class={css`
-        display: grid;
-        grid-template-columns: repeat(2, "fit-content");
-        height: ${
-          formRef !== null
-            ? `${formRef.current?.clientHeight}px`
-            : 'fit-content'
-        };
-        max-width: 480px;
-        gap: 0.5rem;
-        /* background-color: red; */
-      `}
+        class={styles.form(isRoleSignIn)}
         method='POST'
-        ref={formRef}
+        // ref={formRef}
       >
         {isRoleSignIn && (
           <>
-            <label for='name'>name</label>
-            <input type='text' name='name' autocomplete='nickname' />
+            <label for='name' class={styles.input}>
+              name
+            </label>
+            <input
+              class={styles.input}
+              type='text'
+              name='name'
+              autocomplete='nickname'
+            />
           </>
         )}
-        <label for='accountId'>accountId</label>
-        <input type='text' name='accountId' autocomplete='username' />
-        <label for='password'>password</label>
-        <input type='password' name='password' autocomplete='off' />
-        <button
-          type='submit'
-          class={css`
-          grid-column: 1/3;
-          width: fit-content;
-          margin: auto;
-        `}
-          onClick={submit}
-        >
+        <label for='accountId' class={styles.input}>
+          accountId
+        </label>
+        <input
+          class={styles.input}
+          type='text'
+          name='accountId'
+          autocomplete='username'
+        />
+        <label for='password' class={styles.input}>
+          password
+        </label>
+        <input
+          class={styles.input}
+          type='password'
+          name='password'
+          autocomplete='off'
+        />
+        <button type='submit' class={styles.button} onClick={submit}>
           {roleHandler(isRoleSignIn)}
         </button>
         <button
           type='button'
           onClick={clickChangeRoleButton}
-          class={css`
-          grid-column: 1/3;
-          width: fit-content;
-          margin: auto;
-        `}
+          class={styles.button}
         >
           change to {roleHandler(!isRoleSignIn)}
         </button>
