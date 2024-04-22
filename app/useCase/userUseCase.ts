@@ -1,31 +1,14 @@
 import { nanoid } from 'nanoid'
 
 import { UserRepository } from '../repo/userRepo'
+import { handleUndefinedBody } from '../utils/handleUndefinedBody'
 
-import type { InsertUser, SelectUser } from '../../db/schemas'
-import type { Res } from '../routes/types'
+import type { InsertUser } from '../../db/schemas'
 import type { Context } from 'hono'
-
-const handleUndefinedBody = (
-  res: Res<SelectUser | undefined>,
-): Res<SelectUser, [400, 500]> => {
-  if (res.status === 200) {
-    if (res.body === undefined) {
-      const notFound: { status: 400; body: string } = {
-        status: 400,
-        body: 'No user found for your req',
-      }
-      return notFound
-    }
-    return { ...res, body: res.body }
-  }
-  return res
-}
 
 export class userUseCase {
   private readonly db
   constructor(c: Context) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     this.db = new UserRepository(c.env.DB)
   }
 
