@@ -1,6 +1,4 @@
 import { zValidator } from '@hono/zod-validator'
-import { and, eq } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/d1'
 import { Hono } from 'hono'
 import { deleteCookie, getCookie } from 'hono/cookie'
 import { css } from 'hono/css'
@@ -8,8 +6,9 @@ import { createRoute } from 'honox/factory'
 import { z } from 'zod'
 
 import { styles } from './index-css'
-import { todoStatusEnum, todos } from '../../db/schemas'
+import { todoStatusEnum } from '../../db/schemas'
 import Todo from '../islands/Todo'
+import { todoUseCase } from '../useCase/todoUseCase'
 import { userUseCase } from '../useCase/userUseCase'
 
 import type { Res } from './types'
@@ -31,12 +30,8 @@ const getUserStatus = (user: Res<InsertUser, [401, 400, 500]> | undefined) =>
   user ? 'logout' : 'login'
 
 export const GET = createRoute(async c => {
-  const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) }
-  const allTodos = await db.todo
-    .select()
-    .from(todos)
-    .orderBy(todos.updatedAt)
-    .all()
+  const db = { user: new userUseCase(c), todo: new todoUseCase(c) }
+  const allTodos = await db.todo.getAllTodos()
   const sessionId = getCookie(c, 'sessionId')
   const user: Res<InsertUser, [401, 400, 500]> | undefined = await userHandler(
     sessionId,
@@ -46,6 +41,9 @@ export const GET = createRoute(async c => {
   if (user !== undefined && user.status !== 200) {
     deleteCookie(c, 'sessionId')
     return c.redirect('/login')
+  }
+  if (allTodos.status !== 200) {
+    return c.render(<p>error</p>)
   }
   return c.render(
     <div class={styles.body}>
@@ -69,13 +67,14 @@ export const GET = createRoute(async c => {
       </form>
 
       <h3>private</h3>
-      {allTodos
+      {allTodos.body
         .filter(e => e.createdBy === user?.body.id)
         .map(todo => {
           return <Todo todo={todo} />
         })}
       <h3>public</h3>
-      {allTodos
+
+      {allTodos.body
         .filter(e => e.createdBy === null)
         .map(todo => {
           return <Todo todo={todo} />
@@ -93,14 +92,8 @@ const schema = z.object({
 export const POST = createRoute(zValidator('form', schema), async c => {
   const todo = c.req.valid('form')
   console.log(todo)
-  const db = drizzle(c.env.DB)
-  await db
-    .insert(todos)
-    .values({
-      ...todo,
-      createdBy: todo.createdBy !== undefined ? todo.createdBy : undefined,
-    })
-    .returning()
+  const db = new todoUseCase(c)
+  await db.createTodo({ ...todo })
   return c.redirect('/')
 })
 
@@ -116,8 +109,11 @@ const valid = zValidator(
 
 const routes = app
   .put('/', valid, async c => {
-    const req = c.req.valid('json')
-    const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) }
+    const todo = c.req.valid('json')
+    const db = {
+      user: new userUseCase(c),
+      todo: new todoUseCase(c),
+    }
     const sessionId = getCookie(c, 'sessionId')
     const user: Res<SelectUser, [500, 401, 400]> | undefined =
       sessionId !== undefined ? await db.user.fetchUser(sessionId) : undefined
@@ -125,41 +121,17 @@ const routes = app
       deleteCookie(c, 'sessionId')
       return c.json(user)
     }
-    const res: Res<SelectTodo> = await db.todo
-      .update(todos)
-      .set({ ...req, updatedAt: new Date() })
-      .where(
-        and(
-          eq(todos.id, req.id),
-          user === undefined ? undefined : eq(todos.createdBy, user.body.id),
-        ),
-      )
-      .returning()
-      .then((v): { status: 200; body: SelectTodo } => ({
-        status: 200,
-        body: v[0],
-      }))
-      .catch(
-        (): {
-          status: 500
-        } => ({
-          status: 500,
-        }),
-      )
+    const res: Res<SelectTodo, [500, 200, 400]> = await db.todo.updateTodo({
+      ...todo,
+    })
     return c.json(res)
   })
   .delete('/', valid, async c => {
-    const req = c.req.valid('json')
-    const db = drizzle(c.env.DB)
-    const res: Res<SelectTodo> = await db
-      .delete(todos)
-      .where(eq(todos.id, req.id))
-      .returning()
-      .then((v): { status: 200; body: SelectTodo } => ({
-        status: 200,
-        body: v[0],
-      }))
-      .catch(() => ({ status: 500 }))
+    const todo = c.req.valid('json')
+    const db = new todoUseCase(c)
+    const res: Res<SelectTodo, [500, 400, 200]> = await db.deleteTodo({
+      ...todo,
+    })
     return c.json(res)
   })
 export type AppType = typeof routes
