@@ -27,6 +27,9 @@ const userHandler = async (
       })
     : undefined
 
+const getUserStatus = (user: Res<InsertUser, [401, 400, 500]> | undefined) =>
+  user ? 'logout' : 'login'
+
 export const GET = createRoute(async c => {
   const db = { user: new userUseCase(c), todo: drizzle(c.env.DB) }
   const allTodos = await db.todo
@@ -49,7 +52,7 @@ export const GET = createRoute(async c => {
       <h1>
         Hello!<b>{user?.body.name}</b>
       </h1>
-      {user ? <a href='logout'>logout</a> : <a href='login'>login</a>}
+      <a href={getUserStatus(user)}>{getUserStatus(user)}</a>
       <form method='post' class={styles.form}>
         <input name='title' />
         <input
