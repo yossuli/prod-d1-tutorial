@@ -55,26 +55,25 @@ export const GET = createRoute(async c => {
       <a href={getUserStatus(user)}>{getUserStatus(user)}</a>
       <form method='post' class={styles.form}>
         <input name='title' />
-        <input
-          name='createdBy'
-          value={user?.body.id}
-          class={css`
-            display: none;
-          `}
-          type='number'
-        />
+        {user && (
+          <input
+            name='createdBy'
+            value={user.body.id}
+            class={css`
+              display: none;
+            `}
+            type='number'
+          />
+        )}
         <input type='submit' value={'create!'} />
       </form>
-      {user && (
-        <>
-          <h3>private</h3>
-          {allTodos
-            .filter(e => e.createdBy === user?.body.id)
-            .map(todo => {
-              return <Todo todo={todo} />
-            })}
-        </>
-      )}
+
+      <h3>private</h3>
+      {allTodos
+        .filter(e => e.createdBy === user?.body.id)
+        .map(todo => {
+          return <Todo todo={todo} />
+        })}
       <h3>public</h3>
       {allTodos
         .filter(e => e.createdBy === null)
