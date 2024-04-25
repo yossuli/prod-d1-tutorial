@@ -50,4 +50,23 @@ export class userUseCase {
     }
     return res
   }
+
+  async logout(sessionId: string) {
+    const user = await this.db.getUser(sessionId).then(handleUndefinedBody)
+    if (user.status !== 200) {
+      const userCannotFInd: { status: 401; body?: string } = {
+        ...user,
+        status: 401,
+      }
+      return userCannotFInd
+    }
+    const res = await this.db
+      .updateUser({
+        ...user.body,
+        isLoggedIn: false,
+        sessionId: undefined,
+      })
+      .then(handleUndefinedBody)
+    return res
+  }
 }
