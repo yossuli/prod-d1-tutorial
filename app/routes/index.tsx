@@ -84,12 +84,15 @@ export const GET = createRoute(async c => {
   )
 })
 
-const schema = z.object({
-  title: z.string().min(1),
-  createdBy: z.coerce.number().optional(),
-})
+const formValid = zValidator(
+  'form',
+  z.object({
+    title: z.string().min(1),
+    createdBy: z.coerce.number().optional(),
+  }),
+)
 
-export const POST = createRoute(zValidator('form', schema), async c => {
+export const POST = createRoute(formValid, async c => {
   const todo = c.req.valid('form')
   console.log(todo)
   const db = new todoUseCase(c)
@@ -97,7 +100,7 @@ export const POST = createRoute(zValidator('form', schema), async c => {
   return c.redirect('/')
 })
 
-const valid = zValidator(
+const jsonValid = zValidator(
   'json',
   z.object({
     id: z.number(),
@@ -108,7 +111,7 @@ const valid = zValidator(
 )
 
 const routes = app
-  .put('/', valid, async c => {
+  .put('/', jsonValid, async c => {
     const todo = c.req.valid('json')
     const db = {
       user: new userUseCase(c),
@@ -126,7 +129,7 @@ const routes = app
     })
     return c.json(res)
   })
-  .delete('/', valid, async c => {
+  .delete('/', jsonValid, async c => {
     const todo = c.req.valid('json')
     const db = new todoUseCase(c)
     const res: Res<SelectTodo, [500, 400, 200]> = await db.deleteTodo({
