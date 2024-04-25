@@ -6,18 +6,14 @@ import { z } from 'zod'
 import Login from '../islands/Login'
 import { userUseCase } from '../useCase/userUseCase'
 
-const CustomString = z
-  .string()
-  .transform(value => (value === '' ? undefined : value))
-
 const schema = z.object({
-  name: CustomString.optional(),
+  name: z.string().min(1).optional(),
   accountId: z.string().min(1),
   password: z.string().min(8),
 })
 
 export const GET = createRoute(c => {
-  return c.render(<Login />)
+  return c.render(<Login />, { title: 'login/signIn form' })
 })
 
 export const POST = createRoute(zValidator('form', schema), async c => {
