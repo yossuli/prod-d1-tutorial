@@ -7,6 +7,7 @@ export const styles = {
     grid-template-rows: repeat(${isRoleSignIn ? 3 : 2}, 1fr) repeat(2, 45px);
     height: 270px;
     max-width: 480px;
+    margin: auto;
     @media  (max-width: 600px)  {
       height: 180px;
       grid-template-rows: repeat(${isRoleSignIn ? 3 : 2}, 1fr) repeat(2, 45px);
