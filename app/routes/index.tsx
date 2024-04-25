@@ -10,33 +10,20 @@ import { todoStatusEnum } from '../../db/schemas'
 import Todo from '../islands/Todo'
 import { todoUseCase } from '../useCase/todoUseCase'
 import { userUseCase } from '../useCase/userUseCase'
+import { getUserStatus } from '../utils/getUserStatus'
+import { sessionHandler } from '../utils/sessionHandler'
 
 import type { Res } from './types'
 import type { InsertUser, SelectTodo, SelectUser } from '../../db/schemas'
 
 const app = new Hono()
 
-const userHandler = async (
-  sessionId: string | undefined,
-  userDB: userUseCase,
-) =>
-  sessionId !== undefined
-    ? await userDB.fetchUser(sessionId).then(v => {
-        return v
-      })
-    : undefined
-
-const getUserStatus = (user: Res<InsertUser, [401, 400, 500]> | undefined) =>
-  user ? 'logout' : 'login'
-
 export const GET = createRoute(async c => {
   const db = { user: new userUseCase(c), todo: new todoUseCase(c) }
   const allTodos = await db.todo.getAllTodos()
   const sessionId = getCookie(c, 'sessionId')
-  const user: Res<InsertUser, [401, 400, 500]> | undefined = await userHandler(
-    sessionId,
-    db.user,
-  )
+  const user: Res<InsertUser, [401, 400, 500]> | undefined =
+    await sessionHandler(sessionId, db.user)
 
   if (user !== undefined && user.status !== 200) {
     deleteCookie(c, 'sessionId')
